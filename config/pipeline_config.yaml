@@ -1,0 +1,10 @@
+pipeline:
+  N_TARGET: 100
+  M_DATASETS: 20
+  RANDOM_SEED: 42
+  confidence_level: 0.95
+  margin_of_error: 0.05
+  population_proportion: 0.5
+
+scales:
+
