@@ -1,0 +1,50 @@
+pipeline:
+  n_target: "YOUR_VALUE_HERE"
+  m_datasets: "YOUR_VALUE_HERE"
+  random_seed: "YOUR_VALUE_HERE"
+  report_master_index: "YOUR_VALUE_HERE"
+  confidence_level: "YOUR_VALUE_HERE"
+  margin_of_error: "YOUR_VALUE_HERE"
+  population_proportion: "YOUR_VALUE_HERE"
+
+likert:
+  min: "YOUR_VALUE_HERE"
+  max: "YOUR_VALUE_HERE"
+
+tolerance:
+  corr: "YOUR_VALUE_HERE"
+
+paths:
+  raw_seed: "YOUR_VALUE_HERE"
+  processed: "YOUR_VALUE_HERE"
+  synthetic: "YOUR_VALUE_HERE"
+  report_master: "YOUR_VALUE_HERE"
+  logs: "YOUR_VALUE_HERE"
+  reports_figures: "YOUR_VALUE_HERE"
+  reports_tables: "YOUR_VALUE_HERE"
+
+ai:
+  kimi_model: "YOUR_VALUE_HERE"
+  kimi_base_url: "YOUR_VALUE_HERE"
+  openclaw_model: "YOUR_VALUE_HERE"
+  max_token: "YOUR_VALUE_HERE"
+  temperature: "YOUR_VALUE_HERE"
+
+logging:
+  level: "YOUR_VALUE_HERE"
+  format: "YOUR_VALUE_HERE"
+  datefmt: "YOUR_VALUE_HERE"
+
+reproducibility:
+  block_d:
+    signifikansi_alpha: "YOUR_VALUE_HERE"
+    jumlah_bootstrap: "YOUR_VALUE_HERE"
+    kunci_random_seed: "YOUR_VALUE_HERE"
+    arsitektur_model:
+      independen: "YOUR_VALUE_HERE"
+      mediator: "YOUR_VALUE_HERE"
+      dependen: "YOUR_VALUE_HERE"
+    Paths:
+      output_tables: "YOUR_VALUE_HERE"
+      output_figures: "YOUR_VALUE_HERE"
+
