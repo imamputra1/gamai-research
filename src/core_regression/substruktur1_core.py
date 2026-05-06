@@ -9,18 +9,34 @@ import statsmodels.api as sm
 from scipy import stats
 
 def load_master_data(report_master_dir: Path) -> pd.DataFrame:
-    """Load df_report_master.csv from report master directory.
+    """Load df_report_master.csv and aggregate latent variable means.
 
     Returns:
-        pd.DataFrame: Raw master data (shape: N X K)
+        pd.DataFrame: DataFrame with latent variable columns appended.
     """
     target = report_master_dir / "df_report_master.csv"
     if not target.exists():
         raise FileNotFoundError(f"Master data not found: {target}")
-    return pd.read_csv(target)
 
-def standardize_variables(df: pd.DataFrame, cols: list[list]) -> pd.DataFrame:
-    """Apply Z-Score standardization to specified columns.
+    df = pd.read_csv(target)
+
+    mapping: dict[str, list[str]] = {
+        "People": [c for c in df.columns if c.startswith("X1_")],
+        "Process": [c for c in df.columns if c.startswith("X2_")],
+        "Physical_Evidence": [c for c in df.columns if c.startswith("X3_")],
+        "Experience_Value": [c for c in df.columns if c.startswith("M_")],
+        "Minat_Kunjungan": [c for c in df.columns if c.startswith("Y_")],
+    }
+
+    for latent, indicators in mapping.items():
+        if latent not in df.columns and indicators:
+            df[latent] = df[indicators].mean(axis=1)
+
+    return df
+
+
+def standardize_variables(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    """Apply Z-score standardization to specified columns.
 
     Returns:
         pd.DataFrame: New dataframe with standardized columns.
@@ -29,26 +45,35 @@ def standardize_variables(df: pd.DataFrame, cols: list[list]) -> pd.DataFrame:
     df_out[cols] = stats.zscore(df_out[cols], nan_policy="omit")
     return df_out
 
-def build_design_matrix(df: pd.DataFrame, predictor_cols: list[list]) -> tuple[np.ndarray, list[list]]:
+
+def build_design_matrix(
+    df: pd.DataFrame, predictor_cols: list[str]
+) -> tuple[np.ndarray, list[str]]:
     """Construct design matrix with intercept.
 
     Returns:
-       tuple: (X matrix with const, column names including 'const'
+        tuple: (X matrix with const, column names including 'const').
     """
     X = sm.add_constant(df[predictor_cols].values, has_constant="add")
     col_names = ["const"] + predictor_cols
     return X, col_names
 
-def fit_ols_hc3(X: np.ndarray, y:np.ndarray) -> sm.regression.linear_model.RegressionResultsWrapper:
-    """Fit OLS with HC3 heteroscadesticity-consistent covariance.
+
+def fit_ols_hc3(
+    X: np.ndarray, y: np.ndarray
+) -> sm.regression.linear_model.RegressionResultsWrapper:
+    """Fit OLS with HC3 heteroscedasticity-consistent covariance.
 
     Returns:
-        RegressionResultsWrapper: Fitted model Regression Results.
+        RegressionResultsWrapper: Fitted model results.
     """
     model = sm.OLS(y, X)
     return model.fit(cov_type="HC3")
 
-def extract_model_fit(results: sm.regression.linear_model.RegressionResultsWrapper) -> dict[str, Any]:
+
+def extract_model_fit(
+    results: sm.regression.linear_model.RegressionResultsWrapper,
+) -> dict[str, Any]:
     """Extract goodness-of-fit metrics.
 
     Returns:
@@ -64,15 +89,16 @@ def extract_model_fit(results: sm.regression.linear_model.RegressionResultsWrapp
         "df_residuals": int(results.df_resid),
     }
 
+
 def extract_unstandardized_coefficients(
     results: sm.regression.linear_model.RegressionResultsWrapper,
     col_names: list[str],
     alpha: float,
 ) -> pd.DataFrame:
-    """Extract unstandardized B, Rubust SE, t, p, and 95% CI.
+    """Extract unstandardized B, Robust SE, t, p, and 95% CI.
 
     Returns:
-        pd.DataFrame: Coefficient table (shape: K+1 X 7).
+        pd.DataFrame: Coefficient table (shape: K+1 x 7).
     """
     params = results.params
     bse = results.bse
@@ -95,15 +121,17 @@ def extract_unstandardized_coefficients(
         )
     return pd.DataFrame(rows)
 
+
 def extract_standardized_beta(
     df_std: pd.DataFrame,
-    predictor_cols: list[list],
+    predictor_cols: list[str],
     target_col: str,
 ) -> pd.DataFrame:
-    """Compute standardized beta via OLSon z-scored data.
+    """Compute standardized beta via OLS on z-scored data.
 
     Returns:
-        pd.DataFrame: Standardized coefficients (shape: K+1 X 2)."""
+        pd.DataFrame: Standardized coefficients (shape: K+1 x 2).
+    """
     X_std, col_names = build_design_matrix(df_std, predictor_cols)
     y_std = stats.zscore(df_std[target_col].values, nan_policy="omit")
     results_std = fit_ols_hc3(X_std, y_std)
@@ -112,8 +140,8 @@ def extract_standardized_beta(
     for i, name in enumerate(col_names):
         rows.append(
             {
-                "Variable": name,
-                "Beta_Standardized": float(results_std.params[i])
+                "Variabel": name,
+                "Beta_Standardized": float(results_std.params[i]),
             }
         )
     return pd.DataFrame(rows)
@@ -125,8 +153,9 @@ def evaluate_hypotheses(coeff_df: pd.DataFrame, alpha: float) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Coefficient table with Hipotesis column.
     """
+
     def _eval(row: pd.Series) -> str:
-        if row["Variable"] == "const":
+        if row["Variabel"] == "const":
             return "N/A"
         if row["p_value"] < alpha and row["B"] > 0:
             return "Diterima"
@@ -136,23 +165,27 @@ def evaluate_hypotheses(coeff_df: pd.DataFrame, alpha: float) -> pd.DataFrame:
     coeff_df["Hipotesis"] = coeff_df.apply(_eval, axis=1)
     return coeff_df
 
-def merge_coefficient_tables(ustd_df: pd.DataFrame, std_df: pd.DataFrame) -> pd.DataFrame:
+
+def merge_coefficient_tables(
+    unstd_df: pd.DataFrame, std_df: pd.DataFrame
+) -> pd.DataFrame:
     """Merge unstandardized and standardized coefficient tables.
 
     Returns:
-       pd.DataFrame: Merged table (shape: K+1 x 9)
+        pd.DataFrame: Merged table (shape: K+1 x 9).
     """
-    return unstd_df.merge(std_df, on="Variable", how="left")
+    return unstd_df.merge(std_df, on="Variabel", how="left")
+
 
 def export_substruktur1_excel(
     model_fit: dict[str, Any],
     coeff_df: pd.DataFrame,
     output_path: Path,
 ) -> None:
-    """Export results to Excel with model summary and coefficient sheets.
+    """Export results to Excel with Model Summary and Coefficients sheets.
 
     Args:
-        Model_fit: Dictionary of fit metrics.
+        model_fit: Dictionary of fit metrics.
         coeff_df: DataFrame of coefficients.
         output_path: Target Excel file path.
     """
