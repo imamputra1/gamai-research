@@ -2,7 +2,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from src.core_mediation.orchestrator import run_fase_13_2
+from src.core_mediation.orchestrator import compute_mediation_bootstrap
 
 sys.path.append(str(Path(__file__).resolve().parent))
 
@@ -18,7 +18,7 @@ def main() -> None:
     parser.add_argument(
         "--fase",
         type=str,
-        choices=["initialize_workspace", "estimate_antecedent_effects", "estimate_mediator_outcomes", "validate_hypotheses", "13.2", "all"],
+        choices=["initialize_workspace", "estimate_antecedent_effects", "estimate_mediator_outcomes", "validate_hypotheses", "compute_mediation_bootstrap", "all"],
         default="all",
         help=(
             "Excetion module available:\n"
@@ -26,7 +26,7 @@ def main() -> None:
             "    estimate_antecedent_effects: Estimasi Sub-Struktur 1 (X -> M) + Robust SE \n"
             "    estimate_mediator_outcomes: Estimasi Sub-Struktur 2 (X, M -> Y)"
             "    validate_hypotheses: Evaluasi Hipotesis"
-            "    13.2: Bootstraping"
+            "    compute_mediation_bootstrap: Bootstraping"
             "    all : Eksekusi pipeline Utuh"
         )
     )
@@ -73,10 +73,10 @@ def main() -> None:
             print(f"[ERROR]: {e}")
             sys.exit(1)
 
-    if args.fase in ["13.2", "all"]:
+    if args.fase in ["compute_mediation_bootstrap", "all"]:
         print("\n[START] BOOTSTRAPING")
         try:
-            run_fase_13_2()
+            compute_mediation_bootstrap()
             print("[SUCCESS]")
         except Exception as e:
             print(f"[ERROR]:{e}")

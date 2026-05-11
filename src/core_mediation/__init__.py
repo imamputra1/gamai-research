@@ -1,7 +1,10 @@
 # src/core_mediation/__init__.py
-from src.core_mediation.orchestrator import MediasiBootstrapOrchestrator, run_fase_13_2
+from src.core_mediation.orchestrator import (
+    MediasiBootstrapOrchestrator,
+    compute_mediation_bootstrap,
+)
 
 __all__ = [
-    "MediasiBootstrapOrchestrator", 
-    "run_fase_13_2",
+    "MediasiBootstrapOrchestrator",
+    "compute_mediation_bootstrap",
 ]

@@ -2,17 +2,32 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Tuple
 
-import numpy as np
-
+from src.core_reproducibility.config_builder import build_analisis_config
+from src.core_reproducibility.schema import AnalisisConfig
+from src.core_regression._core import load_master_data
 from src.core_mediation.bootstrap_core import (
     compute_ci_statistics,
     export_bootstrap_array,
     export_mediation_excel,
-    run_bootstrap_parallel,
+    run_bootstrap,
 )
-from src.core_regression._core import load_master_data
+from src.core_mediation.constants import (
+    ARSITEKTUR_MODEL_KEY,
+    BOOTSTRAP_ARRAY_FILENAME,
+    DEPENDEN_KEY,
+    INDEPENDEN_KEY,
+    JUMLAH_BOOTSTRAP_KEY,
+    KUNCI_RANDOM_SEED_KEY,
+    MEDIASI_BOOTSTRAP_FILENAME,
+    MEDIATOR_KEY,
+    OUTPUT_TABLES_KEY,
+    PATHS_KEY,
+    REPORT_MASTER_KEY,
+    ROOT_PATHS_KEY,
+    SIGNIFIKANSI_ALPHA_KEY,
+)
 from src.utils.config_loader import load_config
 
 
@@ -20,30 +35,53 @@ class MediasiBootstrapOrchestrator:
     """Orchestrator for H4 mediation bootstrap analysis."""
 
     def __init__(self, app_config: dict[str, Any]) -> None:
-        self.app_config = app_config
-        block_d: dict[str, Any] = app_config["reproducibility"]["block_d"]
+        self.app_config: dict[str, Any] = app_config
+        self.analisis_cfg: AnalisisConfig = build_analisis_config(app_config)
 
-        self.seed: int = block_d["kunci_random_seed"]
-        self.n_iterations: int = block_d["jumlah_bootstrap"]
-        self.predictors: list[str] = block_d["arsitektur_model"]["Independen"]
-        self.mediator: str = block_d["arsitektur_model"]["Mediator"][0]
-        self.dependen: str = block_d["arsitektur_model"]["Dependen"][0]
+        arsitektur: dict[str, list[str]] = self.analisis_cfg[ARSITEKTUR_MODEL_KEY]
 
-        self.report_master_dir: Path = Path(app_config["paths"]["report_master"])
-        self.output_dir: Path = Path(block_d["paths"]["output_tables"])
+        self.alpha: float = self.analisis_cfg[SIGNIFIKANSI_ALPHA_KEY]
+        self.seed: int = self.analisis_cfg[KUNCI_RANDOM_SEED_KEY]
+        self.n_iterations: int = self.analisis_cfg[JUMLAH_BOOTSTRAP_KEY]
+
+        predictors: list[str] = arsitektur[INDEPENDEN_KEY]
+        if not predictors:
+            raise ValueError(
+                f"'{INDEPENDEN_KEY}' list in arsitektur_model cannot be empty."
+            )
+        self.predictors: list[str] = predictors
+
+        mediator_list: list[str] = arsitektur[MEDIATOR_KEY]
+        if not mediator_list:
+            raise ValueError(
+                f"'{MEDIATOR_KEY}' list in arsitektur_model cannot be empty."
+            )
+        self.mediator: str = mediator_list[0]
+
+        dependen_list: list[str] = arsitektur[DEPENDEN_KEY]
+        if not dependen_list:
+            raise ValueError(
+                f"'{DEPENDEN_KEY}' list in arsitektur_model cannot be empty."
+            )
+        self.dependen: str = dependen_list[0]
+
+        self.report_master_dir: Path = Path(
+            app_config[ROOT_PATHS_KEY][REPORT_MASTER_KEY]
+        )
+        self.output_dir: Path = Path(
+            self.analisis_cfg[PATHS_KEY][OUTPUT_TABLES_KEY]
+        )
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def execute(self) -> tuple[Path, Path]:
+    def execute(self) -> Tuple[Path, Path]:
         """Execute full H4 mediation bootstrap pipeline.
 
         Returns:
-            tuple: (uji_mediasi_bootstrap.xlsx path, bootstrap_array.npy path).
+            tuple: (mediasi_bootstrap_H4.xlsx path, bootstrap_array.npy path).
         """
-        # 13.2.1: Load data
-        df = load_master_data(self.report_master_dir)
+        df: pd.DataFrame = load_master_data(self.report_master_dir)
 
-        # 13.2.2-13.2.3: Bootstrap parallel execution
-        bootstrap_array = run_bootstrap_parallel(
+        bootstrap_array: np.ndarray = run_bootstrap(
             df,
             self.predictors,
             self.mediator,
@@ -52,27 +90,28 @@ class MediasiBootstrapOrchestrator:
             self.seed,
         )
 
-        # 13.2.4: CI statistics
-        df_ci = compute_ci_statistics(bootstrap_array, self.predictors)
+        df_ci: pd.DataFrame = compute_ci_statistics(
+            bootstrap_array, self.predictors, self.alpha
+        )
 
-        # 13.2.5: H4 evaluation (embedded in compute_ci_statistics)
+        excel_path: Path = self.output_dir / MEDIASI_BOOTSTRAP_FILENAME
+        export_mediation_excel(df_ci, excel_path)
 
-        # 13.2.6: Export
-        excel_path = self.output_dir / "uji_mediasi_bootstrap.xlsx"
-        export_mediation_excel(df_ci, str(excel_path))
-
-        npy_path = self.output_dir / "bootstrap_array.npy"
-        export_bootstrap_array(bootstrap_array, str(npy_path))
+        npy_path: Path = self.output_dir / BOOTSTRAP_ARRAY_FILENAME
+        export_bootstrap_array(bootstrap_array, npy_path)
 
         print(
-            f"INFO: Uji Mediasi Bootstrap (H4) selesai. "
-            f"N={self.n_iterations}, Seed={self.seed}. "
+            f"[SUCCESS] Uji Mediasi Bootstrap (H4) selesai. "
+            f"N={self.n_iterations}, Seed={self.seed}, Alpha={self.alpha}. "
             f"Output: {excel_path}, {npy_path}"
         )
         return excel_path, npy_path
 
 
-def run_fase_13_2(config_path: str = "config/pipeline_config.yaml") -> None:
+def compute_mediation_bootstrap(config_path: str = "config/pipeline_config.yaml") -> None:
+    """Convenience entry-point for Fase 13.2."""
     app_config: dict[str, Any] = load_config(config_path)
-    orchestrator = MediasiBootstrapOrchestrator(app_config)
+    orchestrator: MediasiBootstrapOrchestrator = MediasiBootstrapOrchestrator(
+        app_config
+    )
     orchestrator.execute()
