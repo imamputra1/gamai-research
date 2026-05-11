@@ -1,4 +1,4 @@
-# src/core_regression/substruktur2_core.py
+# src/core_regression/estimate_mediator_outcomes.py
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,18 +7,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
-from scipy import stats
 from statsmodels.stats.anova import anova_lm
 
-from src.core_regression.substruktur1_core import (
+from src.core_regression._core import (
     build_design_matrix,
     evaluate_hypotheses,
     extract_model_fit,
     extract_unstandardized_coefficients,
     fit_ols_hc3,
-    load_master_data,
-    merge_coefficient_tables,
-    standardize_variables,
 )
 
 
@@ -26,6 +22,10 @@ def build_base_matrix(
     df: pd.DataFrame, predictor_cols: list[str]
 ) -> tuple[np.ndarray, list[str]]:
     """Construct base design matrix (X only, no mediator).
+
+    Args:
+        df: Source dataframe.
+        predictor_cols: Independent variable column names.
 
     Returns:
         tuple: (X_base with const, column names).
@@ -38,10 +38,15 @@ def build_full_matrix(
 ) -> tuple[np.ndarray, list[str]]:
     """Construct full design matrix (X + M).
 
+    Args:
+        df: Source dataframe.
+        predictor_cols: Independent variable column names.
+        mediator_col: Mediator column name.
+
     Returns:
         tuple: (X_full with const, column names).
     """
-    full_cols = predictor_cols + [mediator_col]
+    full_cols: list[str] = predictor_cols + [mediator_col]
     return build_design_matrix(df, full_cols)
 
 
@@ -50,11 +55,16 @@ def fit_base_model(
 ) -> sm.regression.linear_model.RegressionResultsWrapper:
     """Fit OLS base model: X -> Y without mediator.
 
+    Args:
+        df: Source dataframe.
+        predictor_cols: Independent variable column names.
+        target_col: Dependent variable column name.
+
     Returns:
         RegressionResultsWrapper: Fitted base model.
     """
     X_base, _ = build_base_matrix(df, predictor_cols)
-    y = df[target_col].values
+    y: np.ndarray = df[target_col].values
     return fit_ols_hc3(X_base, y)
 
 
@@ -66,11 +76,17 @@ def fit_full_model(
 ) -> sm.regression.linear_model.RegressionResultsWrapper:
     """Fit OLS full model: X + M -> Y.
 
+    Args:
+        df: Source dataframe.
+        predictor_cols: Independent variable column names.
+        mediator_col: Mediator column name.
+        target_col: Dependent variable column name.
+
     Returns:
         RegressionResultsWrapper: Fitted full model.
     """
     X_full, _ = build_full_matrix(df, predictor_cols, mediator_col)
-    y = df[target_col].values
+    y: np.ndarray = df[target_col].values
     return fit_ols_hc3(X_full, y)
 
 
@@ -80,17 +96,20 @@ def compute_delta_r2(
 ) -> dict[str, Any]:
     """Compute incremental R² and nested F-test.
 
+    Args:
+        res_base: Base model results.
+        res_full: Full model results.
+
     Returns:
         dict: delta_r2, f_stat, f_pvalue, r2_base, r2_full.
     """
-    r2_base = float(res_base.rsquared)
-    r2_full = float(res_full.rsquared)
-    delta_r2 = r2_full - r2_base
+    r2_base: float = float(res_base.rsquared)
+    r2_full: float = float(res_full.rsquared)
+    delta_r2: float = r2_full - r2_base
 
-    # Nested F-test via anova_lm
-    anova_res = anova_lm(res_base, res_full)
-    f_stat = float(anova_res["F"].iloc[-1])
-    f_pvalue = float(anova_res["Pr(>F)"].iloc[-1])
+    anova_res: pd.DataFrame = anova_lm(res_base, res_full)
+    f_stat: float = float(anova_res["F"].iloc[-1])
+    f_pvalue: float = float(anova_res["Pr(>F)"].iloc[-1])
 
     return {
         "r2_base": r2_base,
@@ -108,21 +127,28 @@ def extract_full_coefficients(
 ) -> pd.DataFrame:
     """Extract coefficients from full model with hypothesis evaluation.
 
+    Args:
+        res_full: Full model results.
+        col_names: Column names.
+        alpha: Significance level.
+
     Returns:
         pd.DataFrame: Full model coefficients with Hipotesis column.
     """
-    unstd_df = extract_unstandardized_coefficients(res_full, col_names, alpha)
+    unstd_df: pd.DataFrame = extract_unstandardized_coefficients(
+        res_full, col_names, alpha
+    )
     return evaluate_hypotheses(unstd_df, alpha)
 
 
-def export_substruktur2_excel(
+def export_mediator_outcomes_excel(
     model_fit_base: dict[str, Any],
     model_fit_full: dict[str, Any],
     delta_r2: dict[str, Any],
     coeff_df: pd.DataFrame,
     output_path: Path,
 ) -> None:
-    """Export comprehensive results to Excel.
+    """Export comprehensive Sub-Structure 2 results to Excel.
 
     Args:
         model_fit_base: Base model fit metrics.

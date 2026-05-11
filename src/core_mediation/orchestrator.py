@@ -12,7 +12,7 @@ from src.core_mediation.bootstrap_core import (
     export_mediation_excel,
     run_bootstrap_parallel,
 )
-from src.core_regression.substruktur1_core import load_master_data
+from src.core_regression._core import load_master_data
 from src.utils.config_loader import load_config
 
 
