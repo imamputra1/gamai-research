@@ -1,6 +1,10 @@
-from src.core_hypothesis.orchestrator import HipotesisLangsungOrchestrator, run_fase_13_1
+# src/core_hypothesis/__init__.py
+from src.core_hypothesis.orchestrator import (
+    HipotesisLangsungOrchestrator,
+    validate_hypotheses,
+)
 
 __all__ = [
     "HipotesisLangsungOrchestrator",
-    "run_fase_13_1",
+    "validate_hypotheses",
 ]
