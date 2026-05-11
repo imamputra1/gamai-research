@@ -1,16 +1,18 @@
 # src/ai_integration/openclaw_client.py
+from __future__ import annotations
+
 from typing import Any
 
 import requests
 
 
 class OpenClawClient:
-    """Client for OpenClaw (Claude) API."""
+    """Client for OpenClaw (Claude) API via OpenRouter proxy."""
 
     def __init__(
         self,
         api_key: str,
-        model: str = "claude-sonnet-4-20250514",
+        model: str = "anthropic/claude-sonnet-4-20250514",
         max_tokens: int = 4096,
         temperature: float = 0.3,
     ) -> None:
@@ -18,33 +20,33 @@ class OpenClawClient:
         self.model = model
         self.max_tokens = max_tokens
         self.temperature = temperature
-        self.base_url = "https://api.anthropic.com/v1/messages"
+        self.base_url = "https://openrouter.ai/api/v1"
+        self.chat_endpoint = f"{self.base_url}/chat/completions"
 
-    def chat(self, messages: list[dict[str, str]]) -> dict[str, Any]:
-        """Send message request.
-
-        Args:
-            messages: List of {'role': str, 'content': str}.
-
-        Returns:
-            dict[str, Any]: Parsed JSON response.
-        """
+    def chat(
+        self,
+        messages: list[dict[str, str]],
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+    ) -> dict[str, Any]:
         headers = {
-            "x-api-key": self.api_key,
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "anthropic-version": "2023-06-01",
+            "HTTP-Referer": "https://localhost",
+            "X-Title": "ThesisSynthPipeline",
         }
         payload = {
             "model": self.model,
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
             "messages": messages,
+            "max_tokens": max_tokens or self.max_tokens,
+            "temperature": temperature or self.temperature,
         }
         response = requests.post(
-            self.base_url,
+            self.chat_endpoint,
             headers=headers,
             json=payload,
-            timeout=60,
+            timeout=120,
         )
         response.raise_for_status()
         return response.json()
+

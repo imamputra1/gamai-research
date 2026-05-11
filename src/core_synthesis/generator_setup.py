@@ -132,6 +132,28 @@ def save_artifacts(
     logger.info(f"Mean vector saved: {mean_path} (shape: {mean_vector.shape})")
     logger.info(f"Covariance matrix saved: {cov_path} (shape: {cov_matrix.shape})")
 
+def inject_custom_correlations(
+    cov_matrix: np.ndarray, 
+    std_devs: np.ndarray, 
+    col_names: list[str], 
+    overrides: dict[str, dict[str, float]]
+) -> np.ndarray:
+    """Konversi kovarians ke korelasi, timpa nilai target, kembalikan ke kovarians."""
+    outer_v = np.outer(std_devs, std_devs)
+    corr_matrix = cov_matrix / outer_v
+    
+    for var1, targets in overrides.items():
+        if var1 in col_names:
+            idx1 = col_names.index(var1)
+            for var2, new_val in targets.items():
+                if var2 in col_names:
+                    idx2 = col_names.index(var2)
+                    corr_matrix[idx1, idx2] = new_val
+                    corr_matrix[idx2, idx1] = new_val # Simetris
+                    logger.info(f"[INJECT] Korelasi {var1} <-> {var2} diubah menjadi {new_val}")
+                    
+    new_cov_matrix = corr_matrix * outer_v
+    return new_cov_matrix
 
 def run_generator_setup(
     input_dir: Path = Path("data/02_processed"),
@@ -154,6 +176,18 @@ def run_generator_setup(
     validate_latent_shape(df_latent)
 
     mean_vector, cov_matrix = extract_distribution_params(df_latent)
+
+    injection_cfg = config.get("reproducibility", {}).get("sintesis_injection", {})
+    if injection_cfg.get("enable", False):
+        logger.info("=== MENGAKTIFKAN CHEAT CODE KORELASI ===")
+        std_devs = df_latent.std(ddof=1).to_numpy()
+        col_names = df_latent.columns.tolist()
+        overrides = injection_cfg.get("target_correlations", {})
+
+        cov_matrix = inject_custom_correlations(
+            cov_matrix, std_devs, col_names, overrides
+        )
+
     cov_matrix = regularize_covariance(df_latent.to_numpy(dtype=np.float64), cov_matrix)
 
     save_artifacts(mean_vector, cov_matrix, output_dir)

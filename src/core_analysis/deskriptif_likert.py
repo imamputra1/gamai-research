@@ -24,7 +24,7 @@ CONSTRUCT_SLICES: dict[str, slice] = {
     "Process": slice(5, 10),
     "Physical_Evidence": slice(10, 15),
     "Experience_Value": slice(15, 20),
-    "Minat_Kunjung": slice(20, 25),
+    "Minat_Kunjungan_Ulang": slice(20, 25),
 }
 
 

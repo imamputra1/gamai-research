@@ -51,7 +51,7 @@ def extract_super_features(df: pd.DataFrame) -> pd.DataFrame:
         "Process": df_likert.iloc[:, 5:10].mean(axis=1),
         "Physical_Evidence": df_likert.iloc[:, 10:15].mean(axis=1),
         "Experience_Value": df_likert.iloc[:, 15:20].mean(axis=1),
-        "Minat_Kunjung": df_likert.iloc[:, 20:25].mean(axis=1),
+        "Minat_Kunjungan_Ulang": df_likert.iloc[:, 20:25].mean(axis=1),
     }
 
     return pd.DataFrame(features)
@@ -180,7 +180,7 @@ def run_uji_normalitas(
     X: pd.DataFrame = df_features[
         ["People", "Process", "Physical_Evidence", "Experience_Value"]
     ]
-    y: pd.Series = df_features["Minat_Kunjung"]
+    y: pd.Series = df_features["Minat_Kunjungan_Ulang"]
 
     # Initial OLS fit
     model = fit_ols_model(X, y)

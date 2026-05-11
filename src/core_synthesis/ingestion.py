@@ -15,7 +15,6 @@ from src.utils.schema_alignment import (
 
 logger = setup_logger("ingestion")
 
-# Regex-based schema for Sri Husada dataset (5 demo + 25 likert + 5 teks)
 _SCHEMA: dict[str, List[str]] = {
     "demo": [
         r"^Jenis\s+Kelamin",

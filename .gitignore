@@ -12,3 +12,6 @@ config/pipeline_config.yaml
 tests/
 # Virtual environments
 .venv
+.env
+*.json
+*.csv

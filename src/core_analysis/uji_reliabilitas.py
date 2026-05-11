@@ -44,7 +44,7 @@ def build_construct_mapping(df: pd.DataFrame) -> dict[str, list[str]]:
         "Process": df.columns[10:15].tolist(),
         "Physical_Evidence": df.columns[15:20].tolist(),
         "Experience_Value": df.columns[20:25].tolist(),
-        "Minat_Kunjung": df.columns[25:30].tolist(),
+        "Minat_Kunjungan_Ulang": df.columns[25:30].tolist(),
     }
     return mapping
 

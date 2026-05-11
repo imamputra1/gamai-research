@@ -25,7 +25,7 @@ def load_master_data(report_master_dir: Path) -> pd.DataFrame:
         "Process": [c for c in df.columns if c.startswith("X2_")],
         "Physical_Evidence": [c for c in df.columns if c.startswith("X3_")],
         "Experience_Value": [c for c in df.columns if c.startswith("M_")],
-        "Minat_Kunjungan": [c for c in df.columns if c.startswith("Y_")],
+        "Minat_Kunjungan_Ulang": [c for c in df.columns if c.startswith("Y_")],
     }
 
     for latent, indicators in mapping.items():
