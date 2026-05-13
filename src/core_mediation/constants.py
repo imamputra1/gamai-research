@@ -49,9 +49,30 @@ COL_VARIABEL: str = "Variabel"
 COL_B: str = "B"
 
 # =============================================================================
+# DECOMPOSITION COLUMN NAMES
+# =============================================================================
+COL_SIGNIFIKANSI_BOOTSTRAP: str = "Signifikansi_Bootstrap"
+COL_VAF_PERSEN: str = "VAF_Persen"
+COL_STATUS_MEDIASI: str = "Status_Mediasi"
+
+# =============================================================================
+# VAF THRESHOLDS (Hair et al.)
+# =============================================================================
+VAF_THRESHOLD_NO_MEDIATION: float = 20.0
+VAF_THRESHOLD_FULL_MEDIATION: float = 80.0
+
+# =============================================================================
+# MEDIATION STATUS LABELS
+# =============================================================================
+LABEL_NO_MEDIATION: str = "Tidak Ada Mediasi"
+LABEL_PARTIAL_MEDIATION: str = "Mediasi Parsial"
+LABEL_FULL_MEDIATION: str = "Mediasi Penuh"
+
+# =============================================================================
 # DECISION LABELS
 # =============================================================================
 LABEL_SIGNIFIKAN: str = "Signifikan"
 LABEL_TIDAK_SIGNIFIKAN: str = "Tidak Signifikan"
 LABEL_MEDIASI_TERBUKTI: str = "Mediasi Terbukti"
 LABEL_MEDIASI_TIDAK_TERBUKTI: str = "Mediasi Tidak Terbukti"
+LABEL_TIDAK_DIHITUNG: str = "Tidak Dihitung"

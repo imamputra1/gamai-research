@@ -23,6 +23,7 @@ from src.core_mediation.bootstrap_core import (
 from src.core_mediation.decomposition_core import (
     compute_effect_decomposition,
     export_decomposition_excel,
+    load_bootstrap_results,
     load_coefficient_table,
 )
 from src.core_mediation.constants import (
@@ -46,7 +47,7 @@ from src.core_mediation.constants import (
 from src.utils.config_loader import load_config
 
 class MediasiBootstrapOrchestrator:
-    """Orchestrator for H4 mediation bootstrap analysis."""
+    """Orchestrator for mediation bootstrap analysis."""
 
     def __init__(self, app_config: dict[str, Any]) -> None:
         self.app_config: dict[str, Any] = app_config
@@ -123,6 +124,7 @@ class MediasiBootstrapOrchestrator:
 
 class DekomposisiEfekOrchestrator:
     """Orchestrator for Fase 14.1: Effect Decomposition & VAF."""
+
     def __init__(self, app_config: dict[str, Any]) -> None:
         self.app_config: dict[str, Any] = app_config
         self.analisis_cfg: AnalisisConfig = build_analisis_config(app_config)
@@ -150,11 +152,11 @@ class DekomposisiEfekOrchestrator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def execute(self) -> Path:
-        """Execute effect decomposition pipeline.
+        """Execute effect decomposition pipeline with bootstrap gating.
 
-        Reads regression outputs from Fase 12.1 and 12.2, computes
-        direct, indirect, and total effects, derives VAF, and exports
-        to Excel.
+        Reads regression outputs from Fase 12.1 and 12.2, loads bootstrap
+        results from Fase 13.2, computes direct/indirect/total effects, and
+        derives VAF percentage ONLY for significant indirect effects.
 
         Returns:
             Path to exported dekomposisi_efek_VAF.xlsx.
@@ -169,8 +171,17 @@ class DekomposisiEfekOrchestrator:
             full_model_path, SHEET_COEFFICIENTS_FULL
         )
 
+        bootstrap_df: pd.DataFrame | None = None
+        bootstrap_path: Path = self.input_dir / MEDIASI_BOOTSTRAP_FILENAME
+        if bootstrap_path.exists():
+            bootstrap_df = load_bootstrap_results(bootstrap_path)
+
         decomposition_df: pd.DataFrame = compute_effect_decomposition(
-            antecedent_df, full_model_df, self.predictors, self.mediator
+            antecedent_df,
+            full_model_df,
+            self.predictors,
+            self.mediator,
+            bootstrap_df,
         )
 
         output_path: Path = self.output_dir / DECOMPOSITION_FILENAME
@@ -182,6 +193,7 @@ class DekomposisiEfekOrchestrator:
             f"Output: {output_path}"
         )
         return output_path
+
 
 def compute_mediation_bootstrap(config_path: str = "config/pipeline_config.yaml") -> None:
     """Convenience entry-point for Fase 13.2."""
