@@ -20,6 +20,7 @@ ROOT_PATHS_KEY: str = "paths"
 # =============================================================================
 PATH_DIAGRAM_FILENAME: str = "final_path_diagram.png"
 PATH_DIAGRAM_DOT_FILENAME: str = "final_path_diagram.dot"
+RADAR_CHART_FILENAME: str = "radar_chart_tcr.png"
 
 # =============================================================================
 # LAYOUT CONSTANTS (Graphviz rankdir LR)
@@ -39,6 +40,18 @@ EDGE_PENWIDTH_SIGNIFIKAN: str = "2.5"
 EDGE_PENWIDTH_NON_SIGNIFIKAN: str = "1.0"
 EDGE_STYLE_SIGNIFIKAN: str = "solid"
 EDGE_STYLE_NON_SIGNIFIKAN: str = "dashed"
+
+# =============================================================================
+# RADAR CHART CONSTANTS
+# =============================================================================
+RADAR_FILL_ALPHA: float = 0.2
+RADAR_LINE_WIDTH: float = 2.0
+RADAR_MARKER_SIZE: float = 8.0
+RADAR_YLIM_MIN: float = 0.0
+RADAR_YLIM_MAX: float = 100.0
+RADAR_GRID_VISIBLE: bool = True
+RADAR_FIGSIZE: tuple[int, int] = (8, 8)
+RADAR_DPI: int = 300
 
 # =============================================================================
 # LABEL FORMATS

@@ -13,7 +13,8 @@ from src import (
     validate_hypotheses,
     compute_mediation_bootstrap,
     compute_decomposition,
-    compute_path_diagram,
+    run_path_diagram,
+    run_radar_chart,
 )
 
 def main() -> None:
@@ -26,7 +27,7 @@ def main() -> None:
     parser.add_argument(
         "--fase",
         type=str,
-        choices=["initialize_workspace", "estimate_antecedent_effects", "estimate_mediator_outcomes", "validate_hypotheses", "compute_mediation_bootstrap", "compute_decomposition", "compute_path_diagram", "all"],
+        choices=["initialize_workspace", "estimate_antecedent_effects", "estimate_mediator_outcomes", "validate_hypotheses", "compute_mediation_bootstrap", "compute_decomposition", "run_path_diagram", "run_radar_chart", "all"],
         default="all",
         help=(
             "Excetion module available:\n"
@@ -36,7 +37,8 @@ def main() -> None:
             "    validate_hypotheses: Evaluasi Hipotesis"
             "    compute_mediation_bootstrap: Bootstraping"
             "    compute_decomposition: Kalkulasi Dekomposisi Efek"
-            "    compute_path_diagram: !!!"
+            "    run_path_diagram:  Injeksi Metrik Kausalitas & Styling Garis"
+            "    run_radar_chart: Konstruksi Radar Chart (TCR)"
             "    all : Eksekusi pipeline Utuh"
         )
     )
@@ -101,10 +103,19 @@ def main() -> None:
             print(f"[ERROR]:{e}")
             sys.exit(1)
 
-    if args.fase in ["compute_path_diagram", "all"]:
+    if args.fase in ["run_path_diagram", "all"]:
         print("\n[START] DIAGRAM PATH")
         try:
-            compute_path_diagram()
+            run_path_diagram()
+            print("[SUCCESS]")
+        except Exception as e:
+            print(f"[ERROR]:{e}")
+            sys.exit(1)
+
+    if args.fase in ["run_radar_chart", "all"]:
+        print("\n[START] DIAGRAM PATH")
+        try:
+            run_radar_chart()
             print("[SUCCESS]")
         except Exception as e:
             print(f"[ERROR]:{e}")
