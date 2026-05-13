@@ -8,6 +8,7 @@ from src.core_regression import estimate_mediator_outcomes as estimate_mediator_
 from src.core_hypothesis import validate_hypotheses as validate_hypotheses
 from src.core_mediation import compute_mediation_bootstrap as compute_mediation_bootstrap
 from src.core_mediation import compute_decomposition as compute_decomposition
+from src.core_visualization import compute_path_diagram as compute_path_diagram
 from src.utils import load_config as load_config
 
 __version__ = "0.1.1"
@@ -21,4 +22,5 @@ __all__ = [
     "compute_mediation_bootstrap",
     "compute_decomposition",
     "load_config",
+    "compute_path_diagram"
 ]

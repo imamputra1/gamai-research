@@ -155,8 +155,9 @@ class DekomposisiEfekOrchestrator:
         """Execute effect decomposition pipeline with bootstrap gating.
 
         Reads regression outputs from Fase 12.1 and 12.2, loads bootstrap
-        results from Fase 13.2, computes direct/indirect/total effects, and
-        derives VAF percentage ONLY for significant indirect effects.
+        results from Fase 13.2, computes direct/indirect/total effects,
+        derives VAF percentage and mediation status (Hair et al.) ONLY
+        for significant indirect effects.
 
         Returns:
             Path to exported dekomposisi_efek_VAF.xlsx.

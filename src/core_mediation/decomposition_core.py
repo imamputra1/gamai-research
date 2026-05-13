@@ -5,18 +5,23 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
+
 from src.core_mediation.constants import (
     COL_B,
     COL_PREDIKTOR,
     COL_SIGNIFIKANSI_BOOTSTRAP,
     COL_STATUS,
+    COL_STATUS_MEDIASI,
     COL_VARIABEL,
     COL_VAF_PERSEN,
+    LABEL_NO_MEDIATION,
+    LABEL_PARTIAL_MEDIATION,
+    LABEL_FULL_MEDIATION,
     LABEL_SIGNIFIKAN,
     LABEL_TIDAK_DIHITUNG,
+    VAF_THRESHOLD_FULL_MEDIATION,
+    VAF_THRESHOLD_NO_MEDIATION,
 )
-
-
 def load_coefficient_table(filepath: Path, sheet_name: str) -> pd.DataFrame:
     """Load a coefficient table from an Excel workbook.
 
@@ -71,6 +76,21 @@ def extract_coefficient(
         )
     return float(df.loc[mask, value_col].iloc[0])
 
+def determine_mediation_status(vaf_persen: float) -> str:
+    """Determine mediation status from VAF percentage using Hair et al. rule.
+
+    Args:
+        vaf_persen: VAF percentage value.
+
+    Returns:
+        str: Mediation status label.
+    """
+    if vaf_persen < VAF_THRESHOLD_NO_MEDIATION:
+        return LABEL_NO_MEDIATION
+    if vaf_persen <= VAF_THRESHOLD_FULL_MEDIATION:
+        return LABEL_PARTIAL_MEDIATION
+    return LABEL_FULL_MEDIATION
+
 
 def _build_significance_map(bootstrap_df: pd.DataFrame) -> Dict[str, str]:
     """Map predictor names to their bootstrap significance status.
@@ -94,12 +114,17 @@ def compute_effect_decomposition(
     mediator: str,
     bootstrap_df: Optional[pd.DataFrame] = None,
 ) -> pd.DataFrame:
-    """Compute direct, indirect, total effects and VAF for each predictor.
+    """Compute direct, indirect, total effects, VAF, and mediation status.
 
     VAF (Variance Accounted For) is expressed as a percentage and is ONLY
     computed when the bootstrap indirect effect is significant. If the
-    bootstrap result is absent or non-significant, VAF is marked as
-    "Tidak Dihitung".
+    bootstrap result is absent or non-significant, VAF and status are
+    marked accordingly.
+
+    Mediation status follows Hair et al. rule of thumb:
+        - < 20%  : No Mediation
+        - 20-80% : Partial Mediation
+        - > 80%  : Full Mediation
 
     Args:
         antecedent_coeffs: Coefficients from Sub-Structure 1 (X -> M).
@@ -109,7 +134,7 @@ def compute_effect_decomposition(
         bootstrap_df: Optional bootstrap results for significance gating.
 
     Returns:
-        pd.DataFrame: Decomposition table (shape: n_predictors x 8).
+        pd.DataFrame: Decomposition table (shape: n_predictors x 9).
     """
     b_path: float = extract_coefficient(full_model_coeffs, mediator)
 
@@ -130,9 +155,11 @@ def compute_effect_decomposition(
         is_signifikan: bool = status == LABEL_SIGNIFIKAN
 
         if is_signifikan and total != 0.0:
-            vaf_persen: Any = round((indirect / total) * 100, 2)
+            vaf_persen: float = round((indirect / total) * 100, 2)
+            med_status: str = determine_mediation_status(vaf_persen)
         else:
             vaf_persen = LABEL_TIDAK_DIHITUNG
+            med_status = LABEL_TIDAK_DIHITUNG
 
         rows.append(
             {
@@ -144,6 +171,7 @@ def compute_effect_decomposition(
                 "Total_Effect": round(total, 4),
                 COL_SIGNIFIKANSI_BOOTSTRAP: status,
                 COL_VAF_PERSEN: vaf_persen,
+                COL_STATUS_MEDIASI: med_status,
             }
         )
 

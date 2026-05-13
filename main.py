@@ -13,6 +13,7 @@ from src import (
     validate_hypotheses,
     compute_mediation_bootstrap,
     compute_decomposition,
+    compute_path_diagram,
 )
 
 def main() -> None:
@@ -25,7 +26,7 @@ def main() -> None:
     parser.add_argument(
         "--fase",
         type=str,
-        choices=["initialize_workspace", "estimate_antecedent_effects", "estimate_mediator_outcomes", "validate_hypotheses", "compute_mediation_bootstrap", "compute_decomposition", "all"],
+        choices=["initialize_workspace", "estimate_antecedent_effects", "estimate_mediator_outcomes", "validate_hypotheses", "compute_mediation_bootstrap", "compute_decomposition", "compute_path_diagram", "all"],
         default="all",
         help=(
             "Excetion module available:\n"
@@ -35,6 +36,7 @@ def main() -> None:
             "    validate_hypotheses: Evaluasi Hipotesis"
             "    compute_mediation_bootstrap: Bootstraping"
             "    compute_decomposition: Kalkulasi Dekomposisi Efek"
+            "    compute_path_diagram: !!!"
             "    all : Eksekusi pipeline Utuh"
         )
     )
@@ -94,6 +96,15 @@ def main() -> None:
         print("\n[START] DECOMPOSITION")
         try:
             compute_decomposition()
+            print("[SUCCESS]")
+        except Exception as e:
+            print(f"[ERROR]:{e}")
+            sys.exit(1)
+
+    if args.fase in ["compute_path_diagram", "all"]:
+        print("\n[START] DIAGRAM PATH")
+        try:
+            compute_path_diagram()
             print("[SUCCESS]")
         except Exception as e:
             print(f"[ERROR]:{e}")

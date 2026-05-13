@@ -1,0 +1,158 @@
+# src/core_visualization/orchestrator.py
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any, Dict, Tuple
+
+import pandas as pd
+
+from src.core_reproducibility.config_builder import build_analisis_config
+from src.core_reproducibility.schema import AnalisisConfig
+from src.core_regression.constants import (
+    DEFAULT_ANTECEDENT_EFFECTS_FILENAME,
+    DEFAULT_MEDIATOR_OUTCOMES_FILENAME,
+)
+from src.core_visualization.constants import (
+    ARSITEKTUR_MODEL_KEY,
+    DEPENDEN_KEY,
+    INDEPENDEN_KEY,
+    MEDIATOR_KEY,
+    OUTPUT_FIGURES_KEY,
+    OUTPUT_TABLES_KEY,
+    PATH_DIAGRAM_DOT_FILENAME,
+    PATH_DIAGRAM_FILENAME,
+    PATHS_KEY,
+)
+from src.core_visualization.path_diagram import (
+    construct_path_diagram,
+    export_dot_source,
+    render_diagram,
+)
+from src.utils.config_loader import load_config
+
+
+class PathDiagramOrchestrator:
+    """Orchestrator for Fase 14.2: Path Diagram Visualization."""
+
+    def __init__(self, app_config: dict[str, Any]) -> None:
+        self.app_config: dict[str, Any] = app_config
+        self.analisis_cfg: AnalisisConfig = build_analisis_config(app_config)
+
+        arsitektur: dict[str, list[str]] = self.analisis_cfg[ARSITEKTUR_MODEL_KEY]
+
+        predictors: list[str] = arsitektur[INDEPENDEN_KEY]
+        if not predictors:
+            raise ValueError(
+                f"'{INDEPENDEN_KEY}' list in arsitektur_model cannot be empty."
+            )
+        self.predictors: list[str] = predictors
+
+        mediator_list: list[str] = arsitektur[MEDIATOR_KEY]
+        if not mediator_list:
+            raise ValueError(
+                f"'{MEDIATOR_KEY}' list in arsitektur_model cannot be empty."
+            )
+        self.mediator: str = mediator_list[0]
+
+        dependen_list: list[str] = arsitektur[DEPENDEN_KEY]
+        if not dependen_list:
+            raise ValueError(
+                f"'{DEPENDEN_KEY}' list in arsitektur_model cannot be empty."
+            )
+        self.dependen: str = dependen_list[0]
+
+        self.input_dir: Path = Path(
+            self.analisis_cfg[PATHS_KEY][OUTPUT_TABLES_KEY]
+        )
+        self.output_dir: Path = Path(
+            self.analisis_cfg[PATHS_KEY][OUTPUT_FIGURES_KEY]
+        )
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+    @staticmethod
+    def _extract_coeffs_and_significance(
+        df: pd.DataFrame,
+    ) -> Tuple[Dict[str, float], Dict[str, bool]]:
+        """Extract coefficient values and significance flags from a
+        coefficient table.
+
+        Args:
+            df: Coefficient dataframe with Variabel, B, p_value columns.
+
+        Returns:
+            tuple: (coeff_dict, significance_dict).
+        """
+        coeff_dict: Dict[str, float] = {}
+        sig_dict: Dict[str, bool] = {}
+
+        for _, row in df.iterrows():
+            var: str = str(row["Variabel"])
+            if var == "const":
+                continue
+            coeff_dict[var] = float(row["B"])
+            sig_dict[var] = bool(row["p_value"] < 0.05 and row["B"] > 0)
+
+        return coeff_dict, sig_dict
+
+    def execute(self) -> Path:
+        """Execute path diagram construction and rendering.
+
+        Returns:
+            Path to rendered PNG file.
+        """
+        antecedent_path: Path = self.input_dir / DEFAULT_ANTECEDENT_EFFECTS_FILENAME
+        full_model_path: Path = self.input_dir / DEFAULT_MEDIATOR_OUTCOMES_FILENAME
+
+        antecedent_df: pd.DataFrame = pd.read_excel(
+            antecedent_path, sheet_name="Coefficients"
+        )
+        full_model_df: pd.DataFrame = pd.read_excel(
+            full_model_path, sheet_name="Coefficients Full"
+        )
+
+        antecedent_coeffs, antecedent_sig = self._extract_coeffs_and_significance(
+            antecedent_df
+        )
+        full_model_coeffs, full_model_sig = self._extract_coeffs_and_significance(
+            full_model_df
+        )
+
+        # Extract M -> Y coefficient and significance
+        mediator_row = full_model_df[full_model_df["Variabel"] == self.mediator]
+        med_to_dep_b: float = float(mediator_row["B"].iloc[0]) if not mediator_row.empty else 0.0
+        med_to_dep_sig: bool = (
+            float(mediator_row["p_value"].iloc[0]) < 0.05 and med_to_dep_b > 0
+            if not mediator_row.empty
+            else False
+        )
+
+        dot = construct_path_diagram(
+            predictors=self.predictors,
+            mediator=self.mediator,
+            dependen=self.dependen,
+            antecedent_coeffs=antecedent_coeffs,
+            full_model_coeffs=full_model_coeffs,
+            antecedent_significance=antecedent_sig,
+            full_model_significance=full_model_sig,
+            mediator_to_dependen_b=med_to_dep_b,
+            mediator_to_dependen_significant=med_to_dep_sig,
+        )
+
+        png_path: Path = self.output_dir / PATH_DIAGRAM_FILENAME
+        render_diagram(dot, png_path)
+
+        dot_path: Path = self.output_dir / PATH_DIAGRAM_DOT_FILENAME
+        export_dot_source(dot, dot_path)
+
+        print(
+            f"[SUCCESS] Path Diagram Final selesai. "
+            f"Output: {png_path}, {dot_path}"
+        )
+        return png_path
+
+
+def compute_path_diagram(config_path: str = "config/pipeline_config.yaml") -> None:
+    """Convenience entry-point for Fase 14.2."""
+    app_config: dict[str, Any] = load_config(config_path)
+    orchestrator: PathDiagramOrchestrator = PathDiagramOrchestrator(app_config)
+    orchestrator.execute()
