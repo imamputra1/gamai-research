@@ -23,9 +23,16 @@ REPORT_MASTER_KEY: str = "report_master"
 # =============================================================================
 MEDIASI_BOOTSTRAP_FILENAME: str = "mediasi_bootstrap_H4.xlsx"
 BOOTSTRAP_ARRAY_FILENAME: str = "bootstrap_array.npy"
+DECOMPOSITION_FILENAME: str = "dekomposisi_efek_VAF.xlsx"
 
 # =============================================================================
-# OUTPUT COLUMN NAMES
+# EXCEL SHEET NAMES
+# =============================================================================
+SHEET_COEFFICIENTS_ANTECEDENT: str = "Coefficients"
+SHEET_COEFFICIENTS_FULL: str = "Coefficients Full"
+
+# =============================================================================
+# OUTPUT COLUMN NAMES (Bootstrap)
 # =============================================================================
 COL_PREDIKTOR: str = "Prediktor"
 COL_POINT_EST: str = "Point_Estimate"
@@ -34,6 +41,12 @@ COL_LLCI: str = "LLCI_95"
 COL_ULCI: str = "ULCI_95"
 COL_STATUS: str = "Status"
 COL_KEPUTUSAN: str = "Keputusan"
+
+# =============================================================================
+# INPUT COLUMN NAMES (Regression Coefficients)
+# =============================================================================
+COL_VARIABEL: str = "Variabel"
+COL_B: str = "B"
 
 # =============================================================================
 # DECISION LABELS

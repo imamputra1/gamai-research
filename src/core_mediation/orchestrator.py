@@ -4,18 +4,31 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Tuple
 
+import numpy as np
+import pandas as pd
+
 from src.core_reproducibility.config_builder import build_analisis_config
 from src.core_reproducibility.schema import AnalisisConfig
 from src.core_regression._core import load_master_data
+from src.core_regression.constants import (
+    DEFAULT_ANTECEDENT_EFFECTS_FILENAME,
+    DEFAULT_MEDIATOR_OUTCOMES_FILENAME,
+)
 from src.core_mediation.bootstrap_core import (
     compute_ci_statistics,
     export_bootstrap_array,
     export_mediation_excel,
     run_bootstrap,
 )
+from src.core_mediation.decomposition_core import (
+    compute_effect_decomposition,
+    export_decomposition_excel,
+    load_coefficient_table,
+)
 from src.core_mediation.constants import (
     ARSITEKTUR_MODEL_KEY,
     BOOTSTRAP_ARRAY_FILENAME,
+    DECOMPOSITION_FILENAME,
     DEPENDEN_KEY,
     INDEPENDEN_KEY,
     JUMLAH_BOOTSTRAP_KEY,
@@ -26,10 +39,11 @@ from src.core_mediation.constants import (
     PATHS_KEY,
     REPORT_MASTER_KEY,
     ROOT_PATHS_KEY,
+    SHEET_COEFFICIENTS_ANTECEDENT,
+    SHEET_COEFFICIENTS_FULL,
     SIGNIFIKANSI_ALPHA_KEY,
 )
 from src.utils.config_loader import load_config
-
 
 class MediasiBootstrapOrchestrator:
     """Orchestrator for H4 mediation bootstrap analysis."""
@@ -107,6 +121,67 @@ class MediasiBootstrapOrchestrator:
         )
         return excel_path, npy_path
 
+class DekomposisiEfekOrchestrator:
+    """Orchestrator for Fase 14.1: Effect Decomposition & VAF."""
+    def __init__(self, app_config: dict[str, Any]) -> None:
+        self.app_config: dict[str, Any] = app_config
+        self.analisis_cfg: AnalisisConfig = build_analisis_config(app_config)
+
+        arsitektur: dict[str, list[str]] = self.analisis_cfg[ARSITEKTUR_MODEL_KEY]
+
+        predictors: list[str] = arsitektur[INDEPENDEN_KEY]
+        if not predictors:
+            raise ValueError(
+                f"'{INDEPENDEN_KEY}' list in arsitektur_model cannot be empty."
+            )
+        self.predictors: list[str] = predictors
+
+        mediator_list: list[str] = arsitektur[MEDIATOR_KEY]
+        if not mediator_list:
+            raise ValueError(
+                f"'{MEDIATOR_KEY}' list in arsitektur_model cannot be empty."
+            )
+        self.mediator: str = mediator_list[0]
+
+        self.input_dir: Path = Path(
+            self.analisis_cfg[PATHS_KEY][OUTPUT_TABLES_KEY]
+        )
+        self.output_dir: Path = self.input_dir
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+    def execute(self) -> Path:
+        """Execute effect decomposition pipeline.
+
+        Reads regression outputs from Fase 12.1 and 12.2, computes
+        direct, indirect, and total effects, derives VAF, and exports
+        to Excel.
+
+        Returns:
+            Path to exported dekomposisi_efek_VAF.xlsx.
+        """
+        antecedent_path: Path = self.input_dir / DEFAULT_ANTECEDENT_EFFECTS_FILENAME
+        full_model_path: Path = self.input_dir / DEFAULT_MEDIATOR_OUTCOMES_FILENAME
+
+        antecedent_df: pd.DataFrame = load_coefficient_table(
+            antecedent_path, SHEET_COEFFICIENTS_ANTECEDENT
+        )
+        full_model_df: pd.DataFrame = load_coefficient_table(
+            full_model_path, SHEET_COEFFICIENTS_FULL
+        )
+
+        decomposition_df: pd.DataFrame = compute_effect_decomposition(
+            antecedent_df, full_model_df, self.predictors, self.mediator
+        )
+
+        output_path: Path = self.output_dir / DECOMPOSITION_FILENAME
+        export_decomposition_excel(decomposition_df, output_path)
+
+        print(
+            f"[SUCCESS] Dekomposisi Efek & VAF selesai. "
+            f"Prediktor={self.predictors}, Mediator={self.mediator}. "
+            f"Output: {output_path}"
+        )
+        return output_path
 
 def compute_mediation_bootstrap(config_path: str = "config/pipeline_config.yaml") -> None:
     """Convenience entry-point for Fase 13.2."""
@@ -115,3 +190,12 @@ def compute_mediation_bootstrap(config_path: str = "config/pipeline_config.yaml"
         app_config
     )
     orchestrator.execute()
+
+def compute_decomposition(config_path: str = "config/pipeline_config.yaml") -> None:
+    """Convenience entry-point for Fase 14.1."""
+    app_config: dict[str, Any] = load_config(config_path)
+    orchestrator: DekomposisiEfekOrchestrator = DekomposisiEfekOrchestrator(
+        app_config
+    )
+    orchestrator.execute()
+

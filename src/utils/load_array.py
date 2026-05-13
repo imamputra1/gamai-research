@@ -8,7 +8,7 @@ def load_bootstrap_data(filename="bootstrap_array.npy"):
     # Menentukan path absolut relatif terhadap file ini
     current_file = Path(__file__).resolve()
     root_dir = current_file.parents[2]
-    data_path = root_dir / "reports" / "blockD" / "tables" / filename
+    data_path = root_dir / "reports" / "analisis" / "tables" / filename
 
     if data_path.exists():
         data = np.load(data_path)

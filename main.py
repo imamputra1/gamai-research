@@ -2,11 +2,18 @@ import argparse
 import sys
 from pathlib import Path
 
-from src.core_mediation.orchestrator import compute_mediation_bootstrap
-
+# 1. Wajib jalankan sys.path ini PALING PERTAMA sebelum import dari 'src'
 sys.path.append(str(Path(__file__).resolve().parent))
 
-from src import initialize_workspace, estimate_antecedent_effects, estimate_mediator_outcomes, validate_hypotheses
+# 2. Gunakan HANYA SATU PINTU import (karena src/__init__.py sudah rapi)
+from src import (
+    initialize_workspace, 
+    estimate_antecedent_effects, 
+    estimate_mediator_outcomes, 
+    validate_hypotheses,
+    compute_mediation_bootstrap,
+    compute_decomposition,
+)
 
 def main() -> None:
     """Orekestrator Utama untuk Run Analisis"""
@@ -18,7 +25,7 @@ def main() -> None:
     parser.add_argument(
         "--fase",
         type=str,
-        choices=["initialize_workspace", "estimate_antecedent_effects", "estimate_mediator_outcomes", "validate_hypotheses", "compute_mediation_bootstrap", "all"],
+        choices=["initialize_workspace", "estimate_antecedent_effects", "estimate_mediator_outcomes", "validate_hypotheses", "compute_mediation_bootstrap", "compute_decomposition", "all"],
         default="all",
         help=(
             "Excetion module available:\n"
@@ -27,6 +34,7 @@ def main() -> None:
             "    estimate_mediator_outcomes: Estimasi Sub-Struktur 2 (X, M -> Y)"
             "    validate_hypotheses: Evaluasi Hipotesis"
             "    compute_mediation_bootstrap: Bootstraping"
+            "    compute_decomposition: Kalkulasi Dekomposisi Efek"
             "    all : Eksekusi pipeline Utuh"
         )
     )
@@ -77,6 +85,15 @@ def main() -> None:
         print("\n[START] BOOTSTRAPING")
         try:
             compute_mediation_bootstrap()
+            print("[SUCCESS]")
+        except Exception as e:
+            print(f"[ERROR]:{e}")
+            sys.exit(1)
+
+    if args.fase in ["compute_decomposition", "all"]:
+        print("\n[START] DECOMPOSITION")
+        try:
+            compute_decomposition()
             print("[SUCCESS]")
         except Exception as e:
             print(f"[ERROR]:{e}")
