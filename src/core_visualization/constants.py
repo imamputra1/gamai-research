@@ -18,8 +18,8 @@ ROOT_PATHS_KEY: str = "paths"
 # =============================================================================
 # DEFAULT FILENAMES
 # =============================================================================
-PATH_DIAGRAM_FILENAME: str = "path_diagram_final.png"
-PATH_DIAGRAM_DOT_FILENAME: str = "path_diagram_final.dot"
+PATH_DIAGRAM_FILENAME: str = "final_path_diagram.png"
+PATH_DIAGRAM_DOT_FILENAME: str = "final_path_diagram.dot"
 
 # =============================================================================
 # LAYOUT CONSTANTS (Graphviz rankdir LR)
@@ -35,11 +35,20 @@ NODE_FONTSIZE: str = "12"
 EDGE_COLOR_DEFAULT: str = "#333333"
 EDGE_COLOR_SIGNIFIKAN: str = "#28A745"
 EDGE_COLOR_NON_SIGNIFIKAN: str = "#DC3545"
-EDGE_PENWIDTH: str = "2"
+EDGE_PENWIDTH_SIGNIFIKAN: str = "2.5"
+EDGE_PENWIDTH_NON_SIGNIFIKAN: str = "1.0"
+EDGE_STYLE_SIGNIFIKAN: str = "solid"
+EDGE_STYLE_NON_SIGNIFIKAN: str = "dashed"
 
 # =============================================================================
 # LABEL FORMATS
 # =============================================================================
 LABEL_FORMAT_EDGE: str = "{b:.3f}{sign}"
+LABEL_FORMAT_R_SQUARED: str = "R² = {r2:.3f}"
 LABEL_SIGNIFIKAN: str = "*"
 LABEL_NON_SIGNIFIKAN: str = " ns"
+
+# =============================================================================
+# NODE R-SQUARED KEYS
+# =============================================================================
+R_SQUARED_KEY: str = "r_squared"

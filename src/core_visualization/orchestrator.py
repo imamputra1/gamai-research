@@ -22,6 +22,7 @@ from src.core_visualization.constants import (
     PATH_DIAGRAM_DOT_FILENAME,
     PATH_DIAGRAM_FILENAME,
     PATHS_KEY,
+    R_SQUARED_KEY,
 )
 from src.core_visualization.path_diagram import (
     construct_path_diagram,
@@ -94,8 +95,30 @@ class PathDiagramOrchestrator:
 
         return coeff_dict, sig_dict
 
+    @staticmethod
+    def _extract_r_squared(
+        df_summary: pd.DataFrame,
+        r2_key: str = R_SQUARED_KEY,
+    ) -> float | None:
+        """Extract R-squared from a Model Summary dataframe.
+
+        Args:
+            df_summary: Model Summary dataframe.
+            r2_key: Column key for R-squared.
+
+        Returns:
+            float: R-squared value, or None if unavailable.
+        """
+        if r2_key in df_summary.columns and not df_summary.empty:
+            return float(df_summary[r2_key].iloc[0])
+        return None
+
     def execute(self) -> Path:
-        """Execute path diagram construction and rendering.
+        """Execute path diagram construction and rendering with metric injection.
+
+        Injects R-squared into endogenous nodes (Mediator, Dependen) and
+        applies conditional edge styling (solid/thick for significant,
+        dashed/thin for non-significant).
 
         Returns:
             Path to rendered PNG file.
@@ -103,11 +126,20 @@ class PathDiagramOrchestrator:
         antecedent_path: Path = self.input_dir / DEFAULT_ANTECEDENT_EFFECTS_FILENAME
         full_model_path: Path = self.input_dir / DEFAULT_MEDIATOR_OUTCOMES_FILENAME
 
+        # Load coefficient tables
         antecedent_df: pd.DataFrame = pd.read_excel(
             antecedent_path, sheet_name="Coefficients"
         )
         full_model_df: pd.DataFrame = pd.read_excel(
             full_model_path, sheet_name="Coefficients Full"
+        )
+
+        # Load model summaries for R-squared extraction
+        antecedent_summary: pd.DataFrame = pd.read_excel(
+            antecedent_path, sheet_name="Model Summary"
+        )
+        full_model_summary: pd.DataFrame = pd.read_excel(
+            full_model_path, sheet_name="Model Summary Full"
         )
 
         antecedent_coeffs, antecedent_sig = self._extract_coeffs_and_significance(
@@ -116,6 +148,10 @@ class PathDiagramOrchestrator:
         full_model_coeffs, full_model_sig = self._extract_coeffs_and_significance(
             full_model_df
         )
+
+        # Extract R-squared for endogenous variables
+        mediator_r2: float | None = self._extract_r_squared(antecedent_summary)
+        dependen_r2: float | None = self._extract_r_squared(full_model_summary)
 
         # Extract M -> Y coefficient and significance
         mediator_row = full_model_df[full_model_df["Variabel"] == self.mediator]
@@ -136,6 +172,8 @@ class PathDiagramOrchestrator:
             full_model_significance=full_model_sig,
             mediator_to_dependen_b=med_to_dep_b,
             mediator_to_dependen_significant=med_to_dep_sig,
+            mediator_r_squared=mediator_r2,
+            dependen_r_squared=dependen_r2,
         )
 
         png_path: Path = self.output_dir / PATH_DIAGRAM_FILENAME
@@ -146,6 +184,7 @@ class PathDiagramOrchestrator:
 
         print(
             f"[SUCCESS] Path Diagram Final selesai. "
+            f"R²_M={mediator_r2}, R²_Y={dependen_r2}. "
             f"Output: {png_path}, {dot_path}"
         )
         return png_path
