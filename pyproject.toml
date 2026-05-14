@@ -24,6 +24,9 @@ dependencies = [
     "statsmodels>=0.14.6",
     "graphviz>=0.21",
     "tenacity>=9.1.4",
+    "torch>=2.12.0",
+    "transformers>=5.8.1",
+    "safetensors>=0.7.0",
 ]
 
 [dependency-groups]
@@ -40,6 +43,9 @@ addopts = [
     "--import-mode=importlib",
     "--report-log=logs/last_test_results.jsonl"
 ]
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cpu"
 
 [tool.uv]
 managed = true

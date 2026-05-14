@@ -8,7 +8,7 @@ OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 OPENROUTER_CHAT_ENDPOINT: str = f"{OPENROUTER_BASE_URL}/chat/completions"
 
 # =============================================================================
-# DEFAULT MODELS (Reasoning Tier)
+# DEFAULT MODELS (ReasonING Tier)
 # =============================================================================
 REASONING_MODELS: list[str] = [
     "openai/gpt-4o",
@@ -21,7 +21,6 @@ REASONING_MODELS: list[str] = [
 # =============================================================================
 CHEAP_PING_MODEL: str = "google/gemma-2-9b-it:free"
 
-
 # =============================================================================
 # INDONESIAN NLP MODELS
 # =============================================================================
@@ -33,9 +32,9 @@ INDOBERT_MAX_LENGTH: int = 512
 # SENTIMENT LABEL MAPPING
 # =============================================================================
 SENTIMENT_LABEL_MAP: dict[str, str] = {
-   "LABEL_0": "Negative",
-   "LABEL_1": "Neutral",
-   "LABEL_2": "Positive",
+    "LABEL_0": "Negative",
+    "LABEL_1": "Neutral",
+    "LABEL_2": "Positive",
 }
 
 # =============================================================================
@@ -90,17 +89,17 @@ ERROR_CONNECTION_FAILED: str = "Tidak dapat terhubung ke OpenRouter. Periksa kon
 # PROMPT TEMPLATES
 # =============================================================================
 REASONING_SYSTEM_PROMPT: str = (
-   "Anda adalah asisten penelitian akademik yang ahli dalam ekonometrika "
-   "dan analisis data. Tugas Anda adalah menulis narasi akademik dalam Bahasa "
-   "Indonesia yang tajam, objektif, dan sesuai standar tesis S2. Gunakan data "
-   "yang diberikan dalam bentuk dictionary. Jangan berhalusinasi atau menambah "
-   "data yang tidak ada. Temperature rendah memastikan output deterministik."
+    "Anda adalah asisten penelitian akademik yang ahli dalam ekonometrika "
+    "dan analisis data. Tugas Anda adalah menulis narasi akademik dalam Bahasa "
+    "Indonesia yang tajam, objektif, dan sesuai standar tesis S2. Gunakan data "
+    "yang diberikan dalam bentuk dictionary. Jangan berhalusinasi atau menambah "
+    "data yang tidak ada. Temperature rendah memastikan output deterministik."
 )
 
 REASONING_USER_TEMPLATE: str = (
-   "Berikut adalah hasil komputasi statistik dari penelitian saya:\n\n"
-   "{context_json}\n\n"
-   "Silakan tulis narasi akademik yang menjelaskan temuan ini dengan "
-   "struktur: (1) Interpretasi hasil, (2) Implikasi teoritis, "
-   "(3) Rekomendasi praktis. Gunakan Bahasa Indonesia formal."
+    "Berikut adalah hasil komputasi statistik dari penelitian saya:\n\n"
+    "{context_json}\n\n"
+    "Silakan tulis narasi akademik yang menjelaskan temuan ini dengan "
+    "struktur: (1) Interpretasi hasil, (2) Implikasi teoritis, "
+    "(3) Rekomendasi praktis. Gunakan Bahasa Indonesia formal."
 )
