@@ -1,0 +1,34 @@
+name: Automated Testing Pipeline
+
+on:
+  push:
+    branches:
+      - '**'
+
+    pull_request:
+      branches:
+        - main
+
+jobs:
+  unit-testing:
+    name: Jalankan Semua Tes (pytest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Mengambil salinan code baru
+        uses: actions/checkout@v4
+
+      - name: 2. Install 'uv' PM
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+
+      - name: 3. Menyiapkan Python (Ubah versi jika perlu)
+        run: uv python install 3.11 
+
+      - name: 4. Memasang Pytest dan Dependensi Proyek
+        run: |
+          uv pip install --system pytest
+
+      - name: 5. Eksekusi Pengujian di folder tests/
+        run: pytest tests/
