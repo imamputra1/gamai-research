@@ -29,6 +29,17 @@ jobs:
       - name: 4. Membuat Folder Logs Sementara
         run: mkdir -p logs
 
-      - name: 5. Eksekusi Pengujian
+      - name: 5.  Menyiapkan File Konfigurasi Dummy untuk Testing
+        run: |
+          mkdir -p config
+          echo "${{ secrets.PIPELINE_CONFIG_CONTENT }}" > config/pipeline_config.yaml
+
+      - name: 6. Eksekusi Pengujian
         run: uv run pytest -q --tb=short
+
+      - name: 7. Bersihkan dan Hapus File Asli dari Server
+        if: always()
+        run: |
+          rm -f config/pipeline_config.yaml
+          echo "File konfigurasi rahasia berhasil dimusnahkan dari server."
 
