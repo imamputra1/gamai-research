@@ -9,7 +9,7 @@ data/
 logs/
 reports/
 config/pipeline_config.yaml
-tests/
+
 # Virtual environments
 .venv
 .env
