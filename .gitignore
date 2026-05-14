@@ -14,4 +14,4 @@ config/pipeline_config.yaml
 .venv
 .env
 *.json
-*.csv
+
