@@ -1107,6 +1107,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pysastrawi"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0d/54/fa55361786c98bc8afc49253c49bb5325b56af70a3f014e68ee3009612f0/PySastrawi-1.2.0.tar.gz", hash = "sha256:5cc91beee3e43d09e1a13ca059d042a32d894df869ed58460cb79d335387b2fb", size = 189687, upload-time = "2018-09-23T03:42:50.867Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/84/b0a5454a040f81e81e6a95a5d5635f20ad43cc0c288f8b4966b339084962/PySastrawi-1.2.0-py2.py3-none-any.whl", hash = "sha256:370f943dd5e55667b65968cf3ae89583432b2c2b40f5c1748391f18c93568575", size = 210627, upload-time = "2018-09-23T03:42:45.242Z" },
+]
+
+[[package]]
 name = "pytest"
 version = "9.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1365,6 +1374,15 @@ wheels = [
 ]
 
 [[package]]
+name = "sastrawi"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/64/e8/abff41a085ec33b1a55f2065e0ebe1d6c9b6635559a94b3774c8c81e88aa/Sastrawi-1.0.1.zip", hash = "sha256:62badb523e6e273f92eb6d53f5f3d4c0aa9ffcf1ceba69ab3dba5b7a0da02c56", size = 211653, upload-time = "2016-01-18T12:13:07.026Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6f/4b/bab676953da3103003730b8fcdfadbdd20f333d4add10af949dd5c51e6ed/Sastrawi-1.0.1-py2.py3-none-any.whl", hash = "sha256:ac3d1f442ae8f33fd0f59387eb33a1a5121241f028c318c60820f26bd032d93b", size = 209671, upload-time = "2016-01-18T12:12:43.267Z" },
+]
+
+[[package]]
 name = "scikit-learn"
 version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1597,11 +1615,13 @@ dependencies = [
     { name = "openpyxl" },
     { name = "pandas" },
     { name = "pingouin" },
+    { name = "pysastrawi" },
     { name = "pytest" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "safetensors" },
+    { name = "sastrawi" },
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "seaborn" },
@@ -1609,6 +1629,7 @@ dependencies = [
     { name = "tenacity" },
     { name = "torch", version = "2.12.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.12.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "tqdm" },
     { name = "transformers" },
 ]
 
@@ -1631,17 +1652,20 @@ requires-dist = [
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = ">=3.0.2" },
     { name = "pingouin", specifier = ">=0.6.1" },
+    { name = "pysastrawi", specifier = ">=1.2.0" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "requests", specifier = ">=2.33.1" },
     { name = "safetensors", specifier = ">=0.7.0" },
+    { name = "sastrawi", specifier = ">=1.0.1" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
     { name = "scipy", specifier = ">=1.17.1" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "statsmodels", specifier = ">=0.14.6" },
     { name = "tenacity", specifier = ">=9.1.4" },
     { name = "torch", specifier = ">=2.12.0" },
+    { name = "tqdm", specifier = ">=4.67.3" },
     { name = "transformers", specifier = ">=5.8.1" },
 ]
 

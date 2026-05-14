@@ -27,6 +27,9 @@ dependencies = [
     "torch>=2.12.0",
     "transformers>=5.8.1",
     "safetensors>=0.7.0",
+    "sastrawi>=1.0.1",
+    "pysastrawi>=1.2.0",
+    "tqdm>=4.67.3",
 ]
 
 [dependency-groups]
