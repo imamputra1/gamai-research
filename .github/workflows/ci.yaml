@@ -29,14 +29,13 @@ jobs:
       - name: 4. Membuat Folder Logs Sementara
         run: mkdir -p logs
 
-      - name: 5.  Menyiapkan File Konfigurasi Dummy untuk Testing
+      - name: 5. Menyiapkan File Konfigurasi Dummy untuk Testing
         env:
           CONFIG_DATA: ${{ secrets.PIPELINE_CONFIG_CONTENT }}
         run: |
           mkdir -p config
-          cat << 'EOF' > config/pipeline_config.yaml
-          $CONFIG_DATA
-          EOF
+          # Mencetak isi variabel langsung ke dalam file dengan aman
+          echo "$CONFIG_DATA" > config/pipeline_config.yaml
 
       - name: 6. Eksekusi Pengujian
         run: uv run pytest -q --tb=short
