@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - '**'
-
-    pull_request:
-      branches:
-        - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   unit-testing:
@@ -18,17 +17,18 @@ jobs:
       - name: 1. Mengambil salinan code baru
         uses: actions/checkout@v4
 
-      - name: 2. Install 'uv' PM
-        uses: astral-sh/setup-uv@v2
+      - name: 2. Install 'uv' PM & Setup Python
+        uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          python-version: '3.12' 
 
-      - name: 3. Menyiapkan Python (Ubah versi jika perlu)
-        run: uv python install 3.11 
+      - name: 3. Memasang Dependensi Proyek (Termasuk Dev Groups)
+        run: uv sync --all-groups
 
-      - name: 4. Memasang Pytest dan Dependensi Proyek
-        run: |
-          uv pip install --system pytest
+      - name: 4. Membuat Folder Logs Sementara
+        run: mkdir -p logs
 
-      - name: 5. Eksekusi Pengujian di folder tests/
-        run: pytest tests/
+      - name: 5. Eksekusi Pengujian
+        run: uv run pytest -q --tb=short
+
