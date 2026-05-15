@@ -1,4 +1,4 @@
-<!-- src/core_nlp/core_nlp.md -->
+&lt;!-- src/core_nlp/core_nlp.md --&gt;
 # src/core_nlp — NLP Text Preprocessing Module
 
 ## Arsitektur (SoC)

@@ -10,6 +10,7 @@ from src.core_mediation import compute_mediation_bootstrap as compute_mediation_
 from src.core_mediation import compute_decomposition as compute_decomposition
 from src.core_visualization import run_path_diagram as run_path_diagram
 from src.core_visualization import run_radar_chart as run_radar_chart
+from src.core_nlp.facade import run_nlp_preprocessing as run_nlp_preprocessing
 from src.utils import load_config as load_config
 
 __version__ = "0.1.1"

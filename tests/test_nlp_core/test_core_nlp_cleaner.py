@@ -1,7 +1,7 @@
+# tests/test_core_nlp_cleaner.py
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
 from src.core_nlp.cleaner import clean_text
 
@@ -15,7 +15,6 @@ class TestCleaningCaseFolding:
         assert result.iloc[2] == "sangat memuaskan"
 
     def test_punctuation_replaced_with_space_not_removed(self) -> None:
-        """Kritis: tanda baca berdempetan jadi spasi, bukan langsung hapus."""
         series = pd.Series(["bagus.pelayanan", "sangat;baik", "kurang,ramah"])
         result = clean_text(series)
         assert result.iloc[0] == "bagus pelayanan"

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
 from src.core_nlp.constants import DEFAULT_SLANG_DICT
 from src.core_nlp.normalizer import normalize_slang
@@ -15,7 +14,6 @@ class TestSlangNormalization:
         assert result.iloc[0] == "pelayanannya kurang banget"
 
     def test_word_boundary_prevents_partial_replacement(self) -> None:
-        """'jg' di dalam 'kerja' TIDAK boleh jadi 'juga'."""
         series = pd.Series(["bagusnya", "kerja", "juga"])
         result = normalize_slang(series, {"jg": "juga"})
         assert result.iloc[0] == "bagusnya"

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
 from src.core_nlp.stopword_filter import remove_stopwords
 
