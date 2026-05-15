@@ -15,6 +15,7 @@ from src import (
     run_path_diagram,
     run_radar_chart,
     run_nlp_preprocessing,
+    run_nlp_frequential,
 )
 
 
@@ -30,6 +31,8 @@ def main() -> None:
         type=str,
         choices=[
             "initialize_workspace",
+            "run_nlp_preprocessing",
+            "run_nlp_frequential",
             "estimate_antecedent_effects",
             "estimate_mediator_outcomes",
             "validate_hypotheses",
@@ -37,13 +40,14 @@ def main() -> None:
             "compute_decomposition",
             "run_path_diagram",
             "run_radar_chart",
-            "run_nlp_preprocessing",
             "all",
         ],
         default="all",
         help=(
             "Execution modules available:\n"
             "    initialize_workspace: Setup Arsitektur Reproduksibilitas\n"
+            "    run_nlp_preprocessing: NLP Text Preprocessing (4 tahap)\n"
+            "    run_nlp_frequential: Frequential Analysis & Visualisasi\n"
             "    estimate_antecedent_effects: Estimasi Sub-Struktur 1 (X -> M)\n"
             "    estimate_mediator_outcomes: Estimasi Sub-Struktur 2 (X, M -> Y)\n"
             "    validate_hypotheses: Evaluasi Hipotesis\n"
@@ -51,7 +55,6 @@ def main() -> None:
             "    compute_decomposition: Kalkulasi Dekomposisi Efek\n"
             "    run_path_diagram: Injeksi Metrik Kausalitas\n"
             "    run_radar_chart: Konstruksi Radar Chart (TCR)\n"
-            "    run_nlp_preprocessing: NLP Text Preprocessing (4 tahap)\n"
             "    all: Eksekusi pipeline utuh"
         )
     )
@@ -65,6 +68,7 @@ def main() -> None:
     phases = [
         ("initialize_workspace", initialize_workspace, "SETUP ARSITEKTUR"),
         ("run_nlp_preprocessing", run_nlp_preprocessing, "NLP TEXT PREPROCESSING"),
+        ("run_nlp_frequential", run_nlp_frequential, "NLP FREQUENTIAL ANALYSIS"),
         ("estimate_antecedent_effects", estimate_antecedent_effects, "ESTIMASI (X -> M)"),
         ("estimate_mediator_outcomes", estimate_mediator_outcomes, "ESTIMASI (X, M -> Y)"),
         ("validate_hypotheses", validate_hypotheses, "EVALUASI HIPOTESIS"),

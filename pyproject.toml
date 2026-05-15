@@ -30,6 +30,7 @@ dependencies = [
     "sastrawi>=1.0.1",
     "pysastrawi>=1.2.0",
     "tqdm>=4.67.3",
+    "wordcloud>=1.9.6",
 ]
 
 [dependency-groups]
