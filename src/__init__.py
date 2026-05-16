@@ -1,7 +1,6 @@
 # src/__init__.py
 """Thesis Synthetic Pipeline."""
 
-# Teknik Redundant Alias (import X as X) untuk membungkam Linter/Pylance
 from src.core_reproducibility import initialize_workspace as initialize_workspace
 from src.core_regression import estimate_antecedent_effects as estimate_antecedent_effects
 from src.core_regression import estimate_mediator_outcomes as estimate_mediator_outcomes
@@ -12,11 +11,14 @@ from src.core_visualization import run_path_diagram as run_path_diagram
 from src.core_visualization import run_radar_chart as run_radar_chart
 from src.core_nlp import run_nlp_frequential as run_nlp_frequential
 from src.core_nlp import run_nlp_preprocessing as run_nlp_preprocessing
+from src.core_nlp import run_nlp_sentiment as run_nlp_sentiment
+from src.core_nlp import run_nlp_aggregation as run_nlp_aggregation
+from src.core_nlp import run_nlp_llm_synthesis as run_nlp_llm_synthesis
 from src.utils import load_config as load_config
+from src.test_mocks import MockIndoBERTClient
 
 __version__ = "0.1.1"
 
-# __all__ wajib berupa list string statis murni
 __all__ = [
     "initialize_workspace",
     "estimate_antecedent_effects",
@@ -26,5 +28,11 @@ __all__ = [
     "compute_decomposition",
     "load_config",
     "run_path_diagram",
-    "run_radar_chart"
+    "run_radar_chart",
+    "run_nlp_preprocessing",
+    "run_nlp_frequential",
+    "run_nlp_sentiment",
+    "run_nlp_aggregation",
+    "run_nlp_llm_synthesis",
+    "MockIndoBERTClient",
 ]

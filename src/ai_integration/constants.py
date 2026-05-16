@@ -1,30 +1,36 @@
 # src/ai_integration/constants.py
 from __future__ import annotations
+from typing import Final, List
 
 # =============================================================================
 # API ENDPOINTS
 # =============================================================================
-OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
-OPENROUTER_CHAT_ENDPOINT: str = f"{OPENROUTER_BASE_URL}/chat/completions"
+OPENROUTER_BASE_URL: Final[str] = "https://openrouter.ai/api/v1"
+OPENROUTER_CHAT_ENDPOINT: Final[str] = f"{OPENROUTER_BASE_URL}/chat/completions"
 
 # =============================================================================
-# DEFAULT MODELS (ReasonING Tier)
+# MODELS CONFIGURATION
 # =============================================================================
-REASONING_MODELS: list[str] = [
+# Model default utama (Gratis, Performa Tinggi, Konteks 1M Token)
+DEFAULT_LLM_MODEL: Final[str] = "openrouter/owl-alpha"
+
+# Model Tier Atas untuk penalaran kompleks / fallback (Berbayar)
+REASONING_MODELS: Final[List[str]] = [
     "openai/gpt-4o",
     "anthropic/claude-3.5-sonnet",
     "google/gemini-1.5-pro",
 ]
 
 # =============================================================================
-# CHEAP MODELS (Diagnostics / Ping)
+# DIAGNOSTICS / HEALTH CHECK
 # =============================================================================
-CHEAP_PING_MODEL: str = "google/gemma-2-9b-it:free"
-
+# Model sangat ringan & gratis untuk sekadar cek koneksi (Ping)
+CHEAP_PING_MODEL: Final[str] = "google/gemma-2-9b-it:free"
 # =============================================================================
 # INDONESIAN NLP MODELS
 # =============================================================================
-INDOBERT_MODEL_NAME: str = "indobenchmark/indobert-base-p1"
+# GANTI ke model yang sudah di-Finetuning untuk Sentimen
+INDOBERT_MODEL_NAME: str = "w11wo/indonesian-roberta-base-sentiment-classifier"
 INDOBERT_BATCH_SIZE: int = 16
 INDOBERT_MAX_LENGTH: int = 512
 
@@ -32,6 +38,9 @@ INDOBERT_MAX_LENGTH: int = 512
 # SENTIMENT LABEL MAPPING
 # =============================================================================
 SENTIMENT_LABEL_MAP: dict[str, str] = {
+    "positive": "Positive",
+    "neutral": "Neutral",
+    "negative": "Negative",
     "LABEL_0": "Negative",
     "LABEL_1": "Neutral",
     "LABEL_2": "Positive",

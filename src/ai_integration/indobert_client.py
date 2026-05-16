@@ -5,11 +5,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import torch
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    pipeline,
-)
+from tqdm import tqdm
+from transformers import pipeline
 
 from src.ai_integration.constants import (
     INDOBERT_BATCH_SIZE,
@@ -25,7 +22,7 @@ class IndoBERTClient:
     Optimized for CPU-only slim laptops:
         - torch CPU wheels (no CUDA bloat)
         - .safetensors format for fast/safe RAM loading
-        - Batch processing with moderate batch_size to prevent throttling
+        - Batch processing with tqdm to prevent UI hang and CPU throttling
         - Model (~400MB) loaded ONLY on first analyze() call
     """
 
@@ -49,78 +46,54 @@ class IndoBERTClient:
         self.model_name: str = model_name
         self.batch_size: int = batch_size
         self.max_length: int = max_length
-        self._initialized: bool = True
+        self._initialized = True
 
-    def _load_pipeline(self) -> Any:
-        """Lazy-load the transformers pipeline on first use.
-
-        Forces CPU device and safetensors format for lightweight execution.
-
-        Returns:
-            transformers.Pipeline: Configured sentiment analysis pipeline.
-        """
+    @property
+    def classifier(self) -> Any:
+        """Memuat model ke memori CPU hanya saat pertama kali dipanggil."""
         if self._pipeline is None:
+            print(f"\n[INFO] Memuat model {self.model_name} ke CPU...")
             self._pipeline = pipeline(
-                task="sentiment-analysis",
+                "sentiment-analysis",
                 model=self.model_name,
                 tokenizer=self.model_name,
-                device=-1,  # CPU-only
-                truncation=True,
-                max_length=self.max_length,
-                batch_size=self.batch_size,
-                torch_dtype=torch.float32,
+                device=-1, # -1 secara absolut memaksa eksekusi di CPU
             )
         return self._pipeline
 
-    def analyze(self, text: str) -> Dict[str, Any]:
-        """Analyze sentiment of a single text.
-
-        Args:
-            text: Input text in Indonesian.
-
-        Returns:
-            dict: {"text": str, "sentiment": str, "confidence": float}.
-        """
-        classifier = self._load_pipeline()
-        result = classifier(text)[0]
-
-        raw_label: str = str(result["label"])
-        confidence: float = float(result["score"])
-
-        return {
-            "text": text,
-            "sentiment": SENTIMENT_LABEL_MAP.get(raw_label, raw_label),
-            "confidence": round(confidence, 4),
-        }
+    def map_label(self, raw_label: str) -> str:
+        """Standarisasi label dari berbagai jenis model sentimen."""
+        lbl = str(raw_label).lower()
+        if "pos" in lbl or "label_2" in lbl:
+            return "Positive"
+        if "neg" in lbl or "label_0" in lbl:
+            return "Negative"
+        return "Neutral"
 
     def analyze_bulk(self, texts: List[str]) -> List[Dict[str, Any]]:
-        """Analyze sentiment for a list of texts with CPU batch processing.
+        """Eksekusi sentimen dengan mekanisme Chunking dan Progress Bar."""
+        if not texts:
+            return []
 
-        Uses the pipeline's internal batching (batch_size set at init)
-        to prevent CPU throttling / OOM on 16GB RAM slim laptops.
-
-        Args:
-            texts: List of input texts.
-
-        Returns:
-            list: List of sentiment dictionaries.
-        """
-        classifier = self._load_pipeline()
         results: List[Dict[str, Any]] = []
 
-        # Pipeline handles internal batching; we chunk to control memory pressure
-        for i in range(0, len(texts), self.batch_size):
-            batch: List[str] = texts[i : i + self.batch_size]
-            batch_results = classifier(batch)
+        # Menggunakan tqdm untuk iterasi batching agar terminal tidak Hang
+        for i in tqdm(range(0, len(texts), self.batch_size), desc="Inferensi Sentimen"):
+            batch = texts[i : i + self.batch_size]
+            
+            # Mencegah error crash jika ada teks kuesioner yang terlalu panjang
+            batch_results = self.classifier(
+                batch, 
+                truncation=True, 
+                max_length=self.max_length
+            )
 
             for text, res in zip(batch, batch_results):
-                raw_label: str = str(res["label"])
-                confidence: float = float(res["score"])
                 results.append(
                     {
                         "text": text,
-                        "sentiment": SENTIMENT_LABEL_MAP.get(raw_label, raw_label),
-                        "confidence": round(confidence, 4),
+                        "sentiment": self.map_label(res["label"]),
+                        "confidence": round(float(res["score"]), 4),
                     }
                 )
 
@@ -132,16 +105,7 @@ class IndoBERTClient:
         text_column: str,
         output_prefix: str = "sentiment",
     ) -> pd.DataFrame:
-        """Add sentiment columns to an existing DataFrame.
-
-        Args:
-            df: Source dataframe.
-            text_column: Column containing text to analyze.
-            output_prefix: Prefix for new columns.
-
-        Returns:
-            pd.DataFrame: Copy with sentiment and confidence columns added.
-        """
+        """Menambahkan kolom sentimen ke DataFrame asli."""
         texts: List[str] = df[text_column].astype(str).tolist()
         results: List[Dict[str, Any]] = self.analyze_bulk(texts)
 
@@ -153,6 +117,6 @@ class IndoBERTClient:
 
     @classmethod
     def reset_instance(cls) -> None:
-        """Reset singleton instance (useful for testing)."""
+        """Reset singleton instance (berguna untuk testing)."""
         cls._instance = None
         cls._pipeline = None

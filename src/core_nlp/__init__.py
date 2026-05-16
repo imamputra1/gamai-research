@@ -1,10 +1,24 @@
 # src/core_nlp/__init__.py
+from src.core_nlp.aggregator import (
+    build_llm_synthesis_prompt,
+    build_summary_matrix,
+    compute_overall_sentiment,
+    merge_dataframes_by_index,
+    persist_master_aggregated,
+    persist_summary_matrix,
+    prepare_dimension_subset,
+)
 from src.core_nlp.frequency_analyzer import get_all_ngram_levels, get_top_ngrams
 from src.core_nlp.orchestrator import (
+    NLPAggregatorOrchestrator,
     NLPFrequentialOrchestrator,
     NLPPreprocessorOrchestrator,
+    NLPSentimentOrchestrator,
+    run_nlp_aggregation,
     run_nlp_frequential,
+    run_nlp_llm_synthesis,
     run_nlp_preprocessing,
+    run_nlp_sentiment,
 )
 from src.core_nlp.preprocessing import (
     build_text_mapping,
@@ -23,12 +37,22 @@ from src.core_nlp.preprocessing import (
     save_text_mapping,
     stem_text,
 )
+from src.core_nlp.sentiment_engine import SentimentAnalyzer
+from src.core_nlp.visualizer import generate_ngram_barchart, generate_wordcloud
 
 __all__ = [
+    "NLPAggregatorOrchestrator",
     "NLPPreprocessorOrchestrator",
     "NLPFrequentialOrchestrator",
+    "NLPSentimentOrchestrator",
+    "SentimentAnalyzer",
+    "generate_ngram_barchart",
+    "generate_wordcloud",
+    "run_nlp_aggregation",
+    "run_nlp_llm_synthesis",
     "run_nlp_preprocessing",
     "run_nlp_frequential",
+    "run_nlp_sentiment",
     "get_top_ngrams",
     "get_all_ngram_levels",
     "clean_text",
@@ -46,4 +70,11 @@ __all__ = [
     "load_stopwords",
     "save_processed",
     "load_processed",
+    "prepare_dimension_subset",
+    "merge_dataframes_by_index",
+    "compute_overall_sentiment",
+    "build_summary_matrix",
+    "build_llm_synthesis_prompt",
+    "persist_master_aggregated",
+    "persist_summary_matrix",
 ]

@@ -4,15 +4,19 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
-
+from unittest.mock import MagicMock, patch
 import pandas as pd
 import yaml
+import pytest
 
+from src.core_nlp.sentiment_engine import SentimentAnalyzer
+from src.test_mocks import MockIndoBERTClient
 from src.core_nlp.orchestrator import (
     NLPFrequentialOrchestrator,
     NLPPreprocessorOrchestrator,
     run_nlp_frequential,
     run_nlp_preprocessing,
+    run_nlp_sentiment,
 )
 
 
@@ -251,3 +255,68 @@ class TestRunNlpFrequentialIntegration:
             assert 2 in results["q1_test"]
             assert (reports_dir / "wordcloud_q1_test.png").exists()
             assert (reports_dir / "ngram_2_q1_test.png").exists()
+
+
+class TestNLPSentimentOrchestrator:
+    def test_analyze_delegates_to_analyzer(self) -> None:
+        mock_client = MockIndoBERTClient()  # ← Sekarang terdefinisi via import
+        orch = SentimentAnalyzer(client=mock_client)
+
+        df = pd.DataFrame({
+            "id": [1],
+            "text_normalized": ["bagus sekali"],
+        })
+
+        result = orch.analyze_dataframe(df, text_col="text_normalized", output_prefix="q1")
+
+        assert "q1_sentiment" in result.columns
+        assert "q1_confidence" in result.columns
+        assert result["q1_sentiment"].iloc[0] == "Positive"
+
+
+class TestRunNlpSentimentIntegration:
+    def test_runs_on_preprocessed_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            config_dir = root / "config"
+            data_processed = root / "data" / "02_processed"
+
+            for d in [config_dir, data_processed]:
+                d.mkdir(parents=True, exist_ok=True)
+
+            config = {
+                "paths": {
+                    "processed": str(data_processed),
+                },
+                "nlp": {
+                    "text_columns": {"q1_test": "jawaban"},
+                    "output_prefix": "test_preprocessed",
+                    "sentiment": {
+                        "batch_size": 4,
+                        "source_stage": "normalized",
+                    },
+                },
+            }
+            config_path = config_dir / "pipeline_config.yaml"
+            with open(config_path, "w", encoding="utf-8") as f:
+                yaml.dump(config, f)
+
+            df = pd.DataFrame({
+                "id": [1, 2],
+                "text_cleaned": ["bagus sekali", "kurang"],
+                "text_normalized": ["bagus sekali", "kurang"],
+                "text_filtered": ["bagus sekali", "kurang"],
+                "text_final_preprocessed": ["bagus sekali", "kurang"],
+            })
+            df.to_csv(data_processed / "test_preprocessed_q1_test.csv", index=False)
+
+            # ← patch sekarang terdefinisi via import di header
+            with patch("src.ai_integration.indobert_client.IndoBERTClient") as mock_cls:
+                mock_instance = MockIndoBERTClient()
+                mock_cls.return_value = mock_instance
+
+                results = run_nlp_sentiment(str(config_path))
+
+                assert "q1_test" in results
+                assert "q1_test_sentiment" in results["q1_test"].columns
+                assert "q1_test_confidence" in results["q1_test"].columns
